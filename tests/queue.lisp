@@ -14,7 +14,10 @@
   (let* ((list (list 1 2 3))
          (queue (qconc (queue) list))
          (qlist (qlist queue)))
-    (is (eq qlist list))))
+    (is (eq qlist list))
+    (let ((queue2 (qconc queue nil)))
+      (is (eq qlist list))
+      (is (eq queue queue2)))))
 
 (test undeq
   (flet ((q= (q1 q2)

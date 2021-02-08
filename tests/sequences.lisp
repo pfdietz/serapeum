@@ -175,7 +175,12 @@
   (for-all ((list (a-list-of 1000 (lambda () (random 1000)))))
     (is
      (equal (firstn 20 (sort (copy-list list) #'string> :key #'princ-to-string))
-            (bestn 20 list #'string> :key #'princ-to-string)))))
+            (bestn 20 list #'string> :key #'princ-to-string))))
+  (is (equal (bestn 0 "abc" #'char<) ""))
+  (is (equal (bestn 1 '(4 1 3 2) #'<) '(1)))
+  (is (equal (bestn 6 '(5 1 2 4 3) #'<) '(1 2 3 4 5)))
+  (is (equal (bestn 3 '(5 1 2 4 3 7) #'< :memo t) '(1 2 3)))
+  (is (equal (bestn 3 '(5 1 2 4 3 7) #'> :memo t :key #'-) '(1 2 3))))
 
 (test nth-best
   (is (= 0 (nth-best 0 (shuffle (range 1000)) #'<)))
@@ -193,7 +198,13 @@
     (nth-best 1001 (shuffle (range 1000)) #'<)))
 
 (test extrema
-  (is (equal (multiple-value-list (extrema '(1 2 3 4 5) #'<)) '(1 5))))
+  (is (equal (multiple-value-list (extrema '(1 2 3 4 5) #'<)) '(1 5)))
+  (is (equal (multiple-value-list (extrema '(5 4 3 2 1) #'<)) '(1 5)))
+  (is (equal (multiple-value-list (extrema '(3 4 5 2 1) #'<)) '(1 5)))
+  (is (equal (multiple-value-list (extrema '(1 5 3 2 4) #'<)) '(1 5)))
+  (is (equal (multiple-value-list (extrema '(1 2 3 4 5) #'< :start 1)) '(2 5)))
+  (is (equal (multiple-value-list (extrema '(1 2 3 4 5) #'< :end 4)) '(1 4)))
+  (is (equal (multiple-value-list (extrema '(1 2 3 4 5) #'< :start 1 :end 4)) '(2 4))))
 
 (test halves
   (is (equal (halves '(x)) '(x)))
@@ -388,3 +399,19 @@
         (toposort constraints :test #'eql)))
     (signals inconsistent-graph
       (toposort inconsistent-constraints :test #'equal))))
+
+(test sequencep
+  (with-notinline (sequencep)
+    (is (sequencep nil))
+    (is (sequencep #()))
+    (is (sequencep ""))
+    (is (not (sequencep 1)))))
+
+(test sort-new
+  (is (equalp (sort-new '(6 2 4 1 3 7 0 9) #'<) #(0 1 2 3 4 6 7 9))))
+
+(test stable-sort-new
+  (is (equalp (stable-sort-new '(6 2 4 1 3 7 0 9) #'<) #(0 1 2 3 4 6 7 9)))
+  (is (equalp (stable-sort-new '((6 a) (2 b) (4 c) (1 d) (3 e) (7 f) (3 g) (2 h) (9 z))
+                               #'< :key #'car)
+              #((1 d) (2 b) (2 h) (3 e) (3 g) (4 c) (6 a) (7 f) (9 z)))))
