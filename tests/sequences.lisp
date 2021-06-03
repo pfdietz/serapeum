@@ -447,3 +447,34 @@
   (is (equalp (stable-sort-new '((6 a) (2 b) (4 c) (1 d) (3 e) (7 f) (3 g) (2 h) (9 z))
                                #'< :key #'car)
               #((1 d) (2 b) (2 h) (3 e) (3 g) (4 c) (6 a) (7 f) (9 z)))))
+
+(test same
+  ;; See #88.
+  (is-true (same #'length '((1 2 3) (a b c) (foo bar baz))))
+  (is-true (same (distinct) '(1 2 3) :test (op (and _ _))))
+  (is-false (same (distinct) '(1 1) :test (op (and _ _))))
+  (is-true
+   (same (juxt #'first #'second #'third)
+         (make-list 3 :initial-element '(1 2 3))
+         :test #'equal))
+  (is-false (same #'numberp '(a 3 4 5)))
+  (is-true (same #'numberp '(3 4 5 6)))
+  (is-false (same #'numberp '(3 4 5 a)))
+  (is-true (same #'numberp nil))
+  (signals error
+    (same #'numberp t))
+  (is-true (same #'null nil))
+  (is-true (same #'symbolp nil))
+  (is-true (same #'numberp '(1)))
+  (is-true (same #'symbolp '(a)))
+  ;; Exercise: This is correct, but why?
+  (is-true (same #'numberp '(a)))
+  ;; Same exercise.
+  (is-true (same #'oddp '(2 4 6 8 10)))
+  (is-false (same #'oddp '(2 4 6 8 9 10)))
+  (is-true (same #'null '(nil nil nil nil nil)))
+  (is-true (same #'symbolp '(a b c d e f)))
+  (is-false (same #'symbolp `(a b c d e f ,pi)))
+  ;; Works on vectors too.
+  (is-false (same #'numberp #(a 3 4 5)))
+  (is-true (same #'numberp #(3 4 5 6))))
